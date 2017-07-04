@@ -1,7 +1,8 @@
 set(kv_srcs
   KeyValueDB.cc
   MemDB.cc
-  RocksDBStore.cc)
+  RocksDBStore.cc
+  HyperDS.cc)
 
 if (WITH_LEVELDB)
   list(APPEND kv_srcs LevelDBStore.cc)
@@ -9,9 +10,16 @@ endif (WITH_LEVELDB)
 
 add_library(kv_objs OBJECT ${kv_srcs})
 add_library(kv STATIC $<TARGET_OBJECTS:kv_objs>)
-target_include_directories(kv_objs BEFORE PUBLIC ${ROCKSDB_INCLUDE_DIR})
-target_include_directories(kv BEFORE PUBLIC ${ROCKSDB_INCLUDE_DIR})
-target_link_libraries(kv ${LEVELDB_LIBRARIES} ${ROCKSDB_LIBRARIES} ${ALLOC_LIBS} ${SNAPPY_LIBRARIES} ${ZLIB_LIBRARIES})
+target_include_directories(kv_objs BEFORE PUBLIC ${ROCKSDB_INCLUDE_DIR} /usr/local/include)
+target_include_directories(kv BEFORE PUBLIC ${ROCKSDB_INCLUDE_DIR} /usr/local/include)
+target_link_libraries(kv ${LEVELDB_LIBRARIES} ${ROCKSDB_LIBRARIES} ${ALLOC_LIBS} ${SNAPPY_LIBRARIES} ${ZLIB_LIBRARIES} hyperds)
+
+####hyperds###
+#target_include_directories(kv_objs PUBLIC ${CMAKE_SOURCE_DIR}/src/hyperds/include)
+#target_include_directories(kv PUBLIC ${CMAKE_SOURCE_DIR}/src/hyperds/include)
+#target_link_libraries(kv hyperds)
+####hyperds###
+
 
 # rocksdb detects bzlib and lz4 in its Makefile, which forces us to do the same.
 find_package(BZip2 QUIET)

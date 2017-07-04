@@ -703,6 +703,8 @@ else
         debug filestore = 20
         debug bluestore = 30
         debug bluefs = 20
+        debug memdb = 30
+        debug hyperds = 30
         debug rocksdb = 10
         debug bdev = 20
         debug rgw = 20
@@ -734,7 +736,9 @@ if [ "$memstore" -eq 1 ]; then
 fi
 if [ "$bluestore" -eq 1 ]; then
     COSDMEMSTORE='
-	osd objectstore = bluestore'
+	osd objectstore = bluestore
+    bluestore bluefs = false
+    bluestore kvbackend = hyperds'
 fi
 
 if [ -z "$CEPH_PORT" ]; then
