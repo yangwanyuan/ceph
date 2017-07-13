@@ -32,7 +32,9 @@ using std::string;
 #define KEY_DELIM '\0' 
 
 //#### HYPERDS #####
-#define HYPERDS_PATH "/dev/sdb3"
+#define HYPERDS_PATH "/dev/sdb6"
+//#define HYPERDS_PATH "/dev/nvme0n1p7"
+//#define HYPERDS_PATH "/dev/sdb5"
 //#### HYPERDS #####
 
 class HyperDS : public KeyValueDB

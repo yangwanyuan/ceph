@@ -312,7 +312,11 @@ TEST_P(KVTest, RMRange) {
 INSTANTIATE_TEST_CASE_P(
   KeyValueDB,
   KVTest,
-  ::testing::Values("leveldb", "rocksdb", "memdb"));
+  //::testing::Values("leveldb", "rocksdb", "memdb"));
+  //#########HYPERDS#########
+  //::testing::Values("leveldb", "rocksdb", "memdb", "hyperds"));
+  ::testing::Values("hyperds"));
+  //#########HYPERDS#########
 
 #else
 
@@ -336,7 +340,11 @@ int main(int argc, char **argv) {
   common_init_finish(g_ceph_context);
   g_ceph_context->_conf->set_val(
     "enable_experimental_unrecoverable_data_corrupting_features",
-    "rocksdb, memdb");
+    //"rocksdb, memdb");
+    //#########HYPERDS#########
+    //"rocksdb, memdb, hyperds");
+    "hyperds");
+    //#########HYPERDS#########
   g_ceph_context->_conf->apply_changes(NULL);
 
   ::testing::InitGoogleTest(&argc, argv);
