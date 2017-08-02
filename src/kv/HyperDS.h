@@ -31,12 +31,6 @@
 using std::string;
 #define KEY_DELIM '\0' 
 
-//#### HYPERDS #####
-#define HYPERDS_PATH "/dev/sdb6"
-//#define HYPERDS_PATH "/dev/nvme0n1p7"
-//#define HYPERDS_PATH "/dev/sdb5"
-//#### HYPERDS #####
-
 class HyperDS : public KeyValueDB
 {
   typedef std::pair<std::pair<std::string, std::string>, bufferlist> ms_op_t;
@@ -67,6 +61,7 @@ class HyperDS : public KeyValueDB
   uint64_t iterator_seq_no;
 
   //#### HYPERDS #####
+  string hyper_path;
   kvdb::DB *h_db;
   kvdb::WriteBatch bat;
   typedef std::set<std::string> hdb_set_t;

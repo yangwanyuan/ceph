@@ -65,70 +65,13 @@ std::string HyperDS::_get_data_fn()
 
 void HyperDS::_save()
 {
-  std::lock_guard<std::mutex> l(m_lock);
-  //dout(10) << __func__ << " Saving HyperDS to file: "<< _get_data_fn().c_str() << dendl;
-  //int mode = 0644;
-  //int fd = TEMP_FAILURE_RETRY(::open(_get_data_fn().c_str(),
-  //                                   O_WRONLY|O_CREAT|O_TRUNC, mode));
-  //if (fd < 0) {
-  //  int err = errno;
-  //  cerr << "write_file(" << _get_data_fn().c_str() << "): failed to open file: "
-  //       << cpp_strerror(err) << std::endl;
-  //  return;
-  //}
-  //bufferlist bl;
-  //mdb_iter_t iter = m_map.begin();
-  //while (iter != m_map.end()) {
-  //  dout(10) << __func__ << " Key:"<< iter->first << dendl;
-  //  _encode(iter, bl);
-  //  ++iter;
-  //}
-  //bl.write_fd(fd);
-
-  //VOID_TEMP_FAILURE_RETRY(::close(fd));
+  return ;
 }
 
 int HyperDS::_load()
 {
   std::lock_guard<std::mutex> l(m_lock);
-  dout(10) << __func__ << " Reading HyperDS from file: "<< _get_data_fn().c_str() << dendl;
-
-  /*
-   * Open file and read it in single shot.
-   */
-  //int fd = TEMP_FAILURE_RETRY(::open(_get_data_fn().c_str(), O_RDONLY));
-  //if (fd < 0) {
-  //  int err = errno;
-  //  cerr << "can't open " << _get_data_fn().c_str() << ": "
-  //       << cpp_strerror(err) << std::endl;
-  //  return -err;
-  //}
-  //
-  //struct stat st;
-  //memset(&st, 0, sizeof(st));
-  //if (::fstat(fd, &st) < 0) {
-  //  int err = errno;
-  //  cerr << "can't stat file " << _get_data_fn().c_str() << ": "
-  //       << cpp_strerror(err) << std::endl;
-  //  VOID_TEMP_FAILURE_RETRY(::close(fd));
-  //  return -err;
-  //}
-  //
-  //ssize_t file_size = st.st_size;
-  //ssize_t bytes_done = 0;
-  //while (bytes_done < file_size) {
-  //  string key;
-  //  bufferptr datap;
-  //
-  //  bytes_done += ::decode_file(fd, key);
-  //  bytes_done += ::decode_file(fd, datap);
-  //
-  //  dout(10) << __func__ << " Key:"<< key << dendl;
-  //  m_map[key] = datap;
-  //  m_total_bytes += datap.length();
-  //}
-  //VOID_TEMP_FAILURE_RETRY(::close(fd));
-
+  dout(30) << __func__ << " Reading HyperDS from file: "<< _get_data_fn().c_str() << dendl;
 
   //#### HYPERDS #####
   kvdb::Iterator* h_it = h_db->NewIterator();
@@ -143,78 +86,44 @@ int HyperDS::_load()
     dataptr = bufferptr(value.c_str(), value.length());
     m_map[key] =  dataptr;
     m_total_bytes += dataptr.length();
-    dout (1) << __func__ << " HyperDS load, set key " << key  << dendl;
+    dout (30) << __func__ << " HyperDS load, set key " << key  << dendl;
 
   }
   delete h_it;
-  dout (1) << __func__ << " HyperDS iterator get key num:" << h_set.size() << " mdb key num: " << m_map.size() << dendl;
-
-  //mdb_iter_t iter = m_map.begin();
-  //bool all_in = true;
-  //while(iter!=m_map.end()) {
-  //  if ( h_set.find(iter->first) == h_set.end()) {
-  //      dout (1) << __func__ << " HyperDS iterator Not Find key:" << iter->first <<dendl;
-  //      all_in =false;
-  //  } else {
-  //    string data;
-  //    h_db->Get(iter->first.c_str(), iter->first.length(), data);
-  //    int is_same = memcmp(data.c_str(), iter->second.c_str(), data.length()); 
-  //    if ( is_same ) {
-  //      dout(1) << __func__ << " HyperDS INCONSISTENT!!!!" << dendl;
-  //      assert(is_same == 0);
-  //    } 
-  //    dout (1) << __func__ << " HyperDS iterator Find key:" << iter->first <<dendl;
-  //  }
-  //  ++iter;
-  //}
-  //if (all_in) {
-  //  dout (1) << __func__ << " HyperDS iterator all in" <<dendl;
-  //} else {
-  //  dout (1) << __func__ << " HyperDS NOTTTTTTTT ALL IN" << dendl;
-  //}
-  //#### HYPERDS #####
+  dout (30) << __func__ << " HyperDS iterator get key num:" << h_set.size() << " mdb key num: " << m_map.size() << dendl;
 
   return 0;
 }
 
 int HyperDS::_init(bool create)
 {
-  //#### HYPERDS #####
+  hyper_path = g_conf->get_val<std::string>("hyperds_db_paths");
+  if (!hyper_path.length()) {
+    int err = errno;
+    cerr << "HyperDS can't get hyper_db_paths" << std::endl;
+    return err;
+  }
+
+  dout(30) << "HyperDS !!!!! db_path : " << hyper_path << dendl;
   if (create) {
-    dout(1) << " HyperDS Create db..." << dendl;
-    if (!kvdb::DB::CreateDB(HYPERDS_PATH)) {
-      dout(1) << " HyperDS Create db Failed" << dendl;
+    dout(30) << " HyperDS Create db..." << dendl;
+    if (!kvdb::DB::CreateDB(hyper_path)) {
       int err = errno;
       cerr << " HyperDS Create db Failed" << std::endl;
       return err;
     }
-    dout(1) << " HyperDS Create db Success!" << dendl;
+    dout(30) << " HyperDS Create db Success!" << dendl;
   } 
 
-  dout(1) << " HyperDS Open db..." << dendl;
-  if (!kvdb::DB::OpenDB(HYPERDS_PATH, &h_db)) {
+  dout(30) << " HyperDS Open db..." << dendl;
+  if (!kvdb::DB::OpenDB(hyper_path, &h_db)) {
     int err = errno;
     cerr << " HyperDS Open db Failed" << std::endl;
     return err;
   }
-  dout(1) << " HyperDS Open db Success!" << dendl;
-  //#### HYPERDS #####
+  dout(30) << " HyperDS Open db Success!" << dendl;
 
   int r;
-  //dout(1) << __func__ << dendl;
-  //if (create) {
-  //  r = ::mkdir(m_db_path.c_str(), 0700);
-  //  if (r < 0) {
-  //    r = -errno;
-  //    if (r != -EEXIST) {
-  //      derr << __func__ << " mkdir failed: " << cpp_strerror(r) << dendl;
-  //      return r;
-  //    }
-  //    return 0; // ignore EEXIST
-  //  }
-  //} else {
-  //  r = _load();
-  //}
   r = _load();
 
   return r;
@@ -248,13 +157,11 @@ void HyperDS::close()
    * Save whatever in memory btree.
    */
   _save();
-  //#### HYPERDS #####
   if (h_db) {
     delete h_db;
     h_db = nullptr;
-    dout(1) << __func__ << " HyperDS delete h_db" << dendl;
+    dout(30) << __func__ << " HyperDS delete h_db" << dendl;
   }
-  //#### HYPERDS #####
 }
 
 int HyperDS::submit_transaction(KeyValueDB::Transaction t)
@@ -277,13 +184,13 @@ int HyperDS::submit_transaction(KeyValueDB::Transaction t)
   }
 
   //#### HYPERDS #####
-  //kvdb::Status h_s = h_db->InsertBatch(&bat);
-  //if(!h_s.ok()) {
-  //  dout(1) << __func__ << "HyperDS Insert Write BatchERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << dendl;
-  //}
+  kvdb::Status h_s = h_db->InsertBatch(&bat);
+  if(!h_s.ok()) {
+    dout(30) << __func__ << "HyperDS Insert Write BatchERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << dendl;
+  }
 
-  //bat.clear();
-  //dout(1) << __func__ << " HyperDS Insert Write Batch" << dendl;
+  bat.clear();
+  dout(30) << __func__ << " HyperDS Insert Write Batch" << dendl;
   //#### HYPERDS #####
 
   return 0;
@@ -375,31 +282,6 @@ int HyperDS::_setkey(ms_op_t &op)
   //#### HYPERDS #####
   bat.put(key.c_str(), key.length(), bl.c_str(), bl.length() );
   
-  //h_db->InsertBatch(&bat);
-  kvdb::Status h_s = h_db->InsertBatch(&bat);
-  if(!h_s.ok()) {
-    dout(1) << __func__ << "HyperDS Insert Write BatchERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << dendl;
-  }
-  bat.clear();
-  std::string get_aaa;
-  dout(1) << __func__ << "HyperDS Begin read data after write to hyperDS"<< dendl;
-  h_s = h_db->Get(key.c_str(), key.length(), get_aaa);
-  if (!h_s.ok()) {
-    dout(1) << __func__  << "HyperDS hyperds not find key" << dendl;
-  }
-  dout(1) << __func__<< "HyperDS End read data after write to hyperDS" << dendl;
-
-  int is_same = memcmp(get_aaa.c_str(), bl.c_str(), get_aaa.length());
-  //assert(is_same == 0);
-  if ( is_same ) {
-    dout(1) << __func__ << " HyperDS WRONG!!!!!!!!" << dendl;
-  }
-
-  std::string pt_value(bl.c_str(), bl.length());
-  //dout(1) << __func__ << " HyperDS hyperds set key: " << key << dendl;
-  dout(1) << __func__ << " HyperDS hyperds set key: " << key << ", Length: " << key.length() << " hyperds_length = " << get_aaa.length()  << "memdb_length = " << bl.length() <<  "value: " << pt_value <<  "hyper_value: " << get_aaa << dendl;
-  //dout(1) << __func__ << " HyperDS hyperds set key: " << key << ", Length: " << bl.length() << ", value: "<< pt_value <<  dendl;
- 
   //#### HYPERDS #####
   return 0;
 }
@@ -421,13 +303,6 @@ int HyperDS::_rmkey(ms_op_t &op)
    */
   //#### HYPERDS #####
   bat.del(key.c_str(), key.length());
-  ////h_db->InsertBatch(&bat);
-  kvdb::Status h_s = h_db->InsertBatch(&bat);
-  if(!h_s.ok()) {
-    dout(1) << __func__ << "HyperDS Insert Write BatchERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << dendl;
-  }
-  bat.clear();
-  dout(1) << __func__ << " HyperDS hyperds del key: " << key << dendl;
   //#### HYPERDS #####
   return m_map.erase(key);
 }
@@ -470,30 +345,11 @@ int HyperDS::_merge(ms_op_t &op)
      * Merge non existent.
      */
     mop->merge_nonexistent(bl.c_str(), bl.length(), &new_val);
-    //m_map[key] = bufferptr(new_val.c_str(), new_val.length());
+    m_map[key] = bufferptr(new_val.c_str(), new_val.length());
 
     //#### HYPERDS #####
     bat.put(key.c_str(), key.length(), new_val.c_str(), new_val.length() );
-    ////h_db->InsertBatch(&bat);
-    kvdb::Status h_s = h_db->InsertBatch(&bat);
-    if(!h_s.ok()) {
-      dout(1) << __func__ << "HyperDS Insert Write BatchERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << dendl;
-    }
-    bat.clear();
-    std::string get_aaa;
-    h_db->Get(key.c_str(), key.length(), get_aaa);
-
-    int is_same = memcmp(get_aaa.c_str(), new_val.c_str(), get_aaa.length());
-    if ( is_same ) {
-      dout(1) << __func__ << " HyperDS WRONG!!!!!!!!" << dendl;
-      assert(is_same == 0);
-    }
-
-    //dout(1) << __func__ << " HyperDS hyperds Merge (non existent) key: " << key << dendl;
-    dout(1) << __func__ << " HyperDS hyperds Merge (non existent) key: " << key << ", Length: " << get_aaa.length()  << "memdb_length = " << bl.length() <<  "value: " << new_val <<  "hyper_value: " << get_aaa << dendl;
-    //dout(1) << __func__ << " HyperDS hyperds Merge (non existent) key: " << key << ", Length: " << key.length()  << "memdb_length = " << bl.length() <<  "value: " << new_val << dendl;
     //#### HYPERDS #####
-    m_map[key] = bufferptr(new_val.c_str(), new_val.length());
   } else {
     /*
      * Merge existing.
@@ -506,24 +362,6 @@ int HyperDS::_merge(ms_op_t &op)
 
     //#### HYPERDS #####
     bat.put(key.c_str(), key.length(), new_val.c_str(), new_val.length() );
-    ////h_db->InsertBatch(&bat);
-    kvdb::Status h_s = h_db->InsertBatch(&bat);
-    if(!h_s.ok()) {
-      dout(1) << __func__ << "HyperDS Insert Write BatchERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << dendl;
-    }
-    bat.clear();
-    std::string get_aaa;
-    h_db->Get(key.c_str(), key.length(), get_aaa);
-
-    int is_same = memcmp(get_aaa.c_str(), new_val.c_str(), get_aaa.length());
-    if ( is_same ) {
-      dout(1) << __func__ << " HyperDS WRONG!!!!!!!!" << dendl;
-      assert(is_same == 0);
-    }
-
-    //dout(1) << __func__ << " HyperDS hyperds Merge (existing) key: " << key << dendl;
-    dout(1) << __func__ << " HyperDS hyperds Merge (existing) key: " << key << ", Length: " << get_aaa.length() << "memdb_length = " << new_val.length()<< "value: " << new_val << "hyper_value: " << get_aaa << dendl;
-    //dout(1) << __func__ << " HyperDS hyperds Merge (existing) key: " << key << ", Length: " << key.length()  << "memdb_length = " << bl.length() <<  "value: " << new_val << dendl;
     //#### HYPERDS #####
   }
 
@@ -541,54 +379,26 @@ bool HyperDS::_get(const string &prefix, const string &k, bufferlist *out)
   string key = make_key(prefix, k);
   
   //#### HYPERDS #####
-  string get_data;
-  h_db->Get(key.c_str(), key.length(), get_data);
-  if (get_data == "") {
-    dout(1) << __func__ << " HyperDS hyperds not find key: " << key << dendl;
-    return false;
-  
-  }
-  
-  out->push_back(bufferptr(get_data.c_str(), get_data.length()).clone());
-  return true;
+  //string get_data;
+  //h_db->Get(key.c_str(), key.length(), get_data);
+  //if (get_data == "") {
+  //  dout(1) << __func__ << " HyperDS hyperds not find key: " << key << dendl;
+  //  return false;
+  //
+  //}
+  //
+  //out->push_back(bufferptr(get_data.c_str(), get_data.length()).clone());
+  //return true;
   //#### HYPERDS #####
 
-  //mdb_iter_t iter = m_map.find(key);
-  //if (iter == m_map.end()) {
-  //  ////######HYPERDS
-  //  //string get_data;
-  //  //kvdb::Status g_s = h_db->Get(key.c_str(), key.length(), get_data);
-  //  //if (g_s.ok()) {
-  //  //  dout(1) << __func__ << " HyperDS hyperds not find keyi, but memdb find: " << key << dendl;
-  //  //  assert(1==2); 
-  //  //}
-  //  ////######HYPERDS
-  //  return false;
-  //}
+  mdb_iter_t iter = m_map.find(key);
+  if (iter == m_map.end()) {
+    return false;
+  }
 
 
-  //out->push_back((m_map[key].clone()));
-
-  ////#### HYPERDS #####
-  ////string data;
-  ////h_db->Get(key.c_str(), key.length(), data);
-  ////out->push_back(bufferptr(data.c_str(), data.length()).clone());
-  //string data;
-  //h_db->Get(key.c_str(), key.length(), data);
-  //std::string pt_str(out->c_str(), out->length());
-  //int is_same = memcmp(data.c_str(), out->c_str(), data.length());
-  //if ( is_same ) {
-  ////dout(1) << __func__ << " HyperDS hyperds Inconsistent get key: " << key << ",value : "<< data << dendl;
-
-  //dout(1) << __func__ << " HyperDS hyperds Inconsistent get key: " << key << ", value: \r" << data << "memdb_value: \r"<< pt_str   <<"\r, The data Inconsistent !!!!" << ",hyperds length is: " << data.length()  << "memdb_length : " << pt_str.length() << dendl;
-  //assert(is_same == 0);
-  ////dout(1) << __func__ << " HyperDS hyperds get key: " << key << ", value: " << data << "memdb_value: "<< pt_str <<", The data Inconsistent !!!!" << ",hyperds length is: " << data.length()  << "memdb_length : " << pt_str.length() << dendl;
-  //} else {
-  //dout(1) << __func__ << " HyperDS hyperds get key: " << key <<dendl;
-  ////dout(1) << __func__ << " HyperDS hyperds get key: " << key << ", value: " << data << "memdb_value: "<< pt_str <<", The data Same !!! " << ", hyperds length is: " << data.length()  << "memdb_length : " << pt_str.length() << dendl;
-  //}
-  ////#### HYPERDS #####
-  //return true;
+  out->push_back((m_map[key].clone()));
+  return true;
 }
 
 bool HyperDS::_get_locked(const string &prefix, const string &k, bufferlist *out)

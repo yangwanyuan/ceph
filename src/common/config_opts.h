@@ -1727,3 +1727,5 @@ OPTION(internal_safe_to_start_threads, OPT_BOOL, false)
 OPTION(debug_deliberately_leak_memory, OPT_BOOL, false)
 
 OPTION(rgw_swift_custom_header, OPT_STR, "") // option to enable swift custom headers
+
+SAFE_OPTION(hyperds_db_paths, OPT_STR, "")// "/dev/sdb6"

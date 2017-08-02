@@ -470,7 +470,9 @@ $DAEMONOPTS
         filestore wbthrottle btrfs inodes hard limit = 30
         osd copyfrom max chunk = 524288
         bluestore fsck on mount = true
-        bluestore block create = true
+        #bluestore block create = true
+        bluestore block create = false
+        bluestore block path = /dev/sdb6
         bluestore block db size = 67108864
         bluestore block db create = true
         bluestore block wal size = 1048576000
@@ -736,9 +738,13 @@ if [ "$memstore" -eq 1 ]; then
 fi
 if [ "$bluestore" -eq 1 ]; then
     COSDMEMSTORE='
+    hyperds_db_paths = /dev/sdb3
+    #osd op threads = 16
+    #osd op num shards = 8
 	osd objectstore = bluestore
     bluestore bluefs = false
     bluestore kvbackend = hyperds'
+    #bluestore kvbackend = hyperds'
 fi
 
 if [ -z "$CEPH_PORT" ]; then
