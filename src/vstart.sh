@@ -739,6 +739,7 @@ fi
 if [ "$bluestore" -eq 1 ]; then
     COSDMEMSTORE='
     hyperds_db_paths = /dev/sdb3
+    hyperds_db_segment_size = 65536
     #osd op threads = 16
     #osd op num shards = 8
 	osd objectstore = bluestore

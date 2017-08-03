@@ -1729,3 +1729,4 @@ OPTION(debug_deliberately_leak_memory, OPT_BOOL, false)
 OPTION(rgw_swift_custom_header, OPT_STR, "") // option to enable swift custom headers
 
 SAFE_OPTION(hyperds_db_paths, OPT_STR, "")// "/dev/sdb6"
+SAFE_OPTION(hyperds_db_segment_size, OPT_INT, 0)// 128 K

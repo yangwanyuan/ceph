@@ -104,10 +104,16 @@ int HyperDS::_init(bool create)
     return err;
   }
 
+  kvdb::Options opt;
+  int seg_size = g_conf->get_val<int>("hyperds_db_segment_size");
+  if (seg_size != 0 ) {
+    opt.segment_size= seg_size;
+  }
+
   dout(30) << "HyperDS !!!!! db_path : " << hyper_path << dendl;
   if (create) {
     dout(30) << " HyperDS Create db..." << dendl;
-    if (!kvdb::DB::CreateDB(hyper_path)) {
+    if (!kvdb::DB::CreateDB(hyper_path, opt)) {
       int err = errno;
       cerr << " HyperDS Create db Failed" << std::endl;
       return err;
@@ -187,6 +193,7 @@ int HyperDS::submit_transaction(KeyValueDB::Transaction t)
   kvdb::Status h_s = h_db->InsertBatch(&bat);
   if(!h_s.ok()) {
     dout(30) << __func__ << "HyperDS Insert Write BatchERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << dendl;
+    return -1;
   }
 
   bat.clear();
@@ -266,7 +273,7 @@ int HyperDS::_setkey(ms_op_t &op)
   m_total_bytes += bl.length();
 
   bufferlist bl_old;
-  dout(1) << __func__ << " HyperDS _setkey will call _get key = " << key << dendl;
+  dout(30) << __func__ << " HyperDS _setkey will call _get key = " << key << dendl;
   if (_get(op.first.first, op.first.second, &bl_old)) {
     /*
      * delete and free existing key.
@@ -292,7 +299,7 @@ int HyperDS::_rmkey(ms_op_t &op)
   std::string key = make_key(op.first.first, op.first.second);
 
   bufferlist bl_old;
-  dout(1) << __func__ << " HyperDS _rmkey will call _get " << dendl;
+  dout(30) << __func__ << " HyperDS _rmkey will call _get " << dendl;
   if (_get(op.first.first, op.first.second, &bl_old)) {
     assert(m_total_bytes >= bl_old.length());
     m_total_bytes -= bl_old.length();
@@ -338,7 +345,7 @@ int HyperDS::_merge(ms_op_t &op)
    * call the merge operator with value and non value
    */
   bufferlist bl_old;
-  dout(1) << __func__ << " HyperDS _mergekey will call _get " << dendl;
+  dout(30) << __func__ << " HyperDS _mergekey will call _get " << dendl;
   if (_get(op.first.first, op.first.second, &bl_old) == false) {
     std::string new_val;
     /*
@@ -382,7 +389,7 @@ bool HyperDS::_get(const string &prefix, const string &k, bufferlist *out)
   //string get_data;
   //h_db->Get(key.c_str(), key.length(), get_data);
   //if (get_data == "") {
-  //  dout(1) << __func__ << " HyperDS hyperds not find key: " << key << dendl;
+  //  dout(30) << __func__ << " HyperDS hyperds not find key: " << key << dendl;
   //  return false;
   //
   //}

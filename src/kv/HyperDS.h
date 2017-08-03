@@ -27,6 +27,7 @@
 #include "hyperds/Status.h"
 #include "hyperds/Iterator.h"
 #include "hyperds/Write_batch.h"
+#include "hyperds/Options.h"
 
 using std::string;
 #define KEY_DELIM '\0' 
